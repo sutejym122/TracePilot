@@ -1,13 +1,18 @@
 """Reusable FastAPI dependencies.
 
-`get_current_user` is the gate every protected route declares. It decodes the
-bearer token, loads the user, and returns the ORM object whose `.id` scopes all
-downstream queries. tokenUrl points at the login route for the Swagger UI.
+`get_current_user` is the gate every protected route declares. It reads the
+bearer token from the `Authorization: Bearer <token>` header, decodes it, loads
+the user, and returns the ORM object whose `.id` scopes all downstream queries.
+
+Uses HTTPBearer so the Swagger "Authorize" dialog is a single paste-your-token
+box (the login route takes JSON, not OAuth2 form data). auto_error=False lets us
+raise our own AuthError (401) for a missing/blank header instead of HTTPBearer's
+default 403.
 """
 import uuid
 
 from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -15,15 +20,18 @@ from app.errors import AuthError
 from app.models.user import User
 from app.security import decode_access_token
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> User:
     """Resolve the current user from the bearer token, or raise 401."""
-    subject = decode_access_token(token)
+    if credentials is None or not credentials.credentials:
+        raise AuthError("Not authenticated")
+
+    subject = decode_access_token(credentials.credentials)
     try:
         user_id = uuid.UUID(subject)
     except (ValueError, TypeError):
