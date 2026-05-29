@@ -34,3 +34,8 @@ class AuthError(DomainError):
 class PermissionError(DomainError):  # noqa: A001 - intentional domain name
     code = "forbidden"
     status_code = 403
+
+
+class ValidationError(DomainError):
+    code = "validation_error"
+    status_code = 422
