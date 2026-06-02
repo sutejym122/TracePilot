@@ -11,4 +11,4 @@ from app.models.service import Service  # noqa: F401
 from app.models.health import HealthCheck  # noqa: F401
 # from app.models.metric import ApiMetric  # noqa: F401
 from app.models.release import Release, ReleaseChecklist  # noqa: F401
-# from app.models.incident import Incident, IncidentUpdate  # noqa: F401
+from app.models.incident import Incident  # noqa: F401
