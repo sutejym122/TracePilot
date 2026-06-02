@@ -101,3 +101,40 @@ def update_incident(db: Session, incident: Incident, changes: dict) -> Incident:
 def delete_incident(db: Session, incident: Incident) -> None:
     db.delete(incident)
     db.commit()
+
+
+# --- Incident updates (timeline) ---
+def list_updates_for_incident(db: Session, incident: Incident):
+    """Return the incident's updates in chronological order (oldest first)."""
+    from app.models.incident import IncidentUpdate  # local import avoids any cycle
+    stmt = (
+        select(IncidentUpdate)
+        .where(IncidentUpdate.incident_id == incident.id)
+        .order_by(IncidentUpdate.created_at.asc())
+    )
+    return list(db.scalars(stmt).all())
+
+
+def add_update(db: Session, incident: Incident, data: dict):
+    """Append a timeline update. If it carries a status, propagate it to the
+    parent incident, applying the same resolved_at automation as incident edits.
+    """
+    from app.models.incident import IncidentUpdate
+
+    update = IncidentUpdate(
+        incident_id=incident.id,
+        message=data["message"],
+        author=data.get("author"),
+        status=data.get("status"),
+    )
+    db.add(update)
+
+    new_status = data.get("status")
+    if new_status is not None:
+        incident.status = new_status
+        if new_status == IncidentStatus.resolved and incident.resolved_at is None:
+            incident.resolved_at = datetime.now(timezone.utc)
+
+    db.commit()
+    db.refresh(update)
+    return update

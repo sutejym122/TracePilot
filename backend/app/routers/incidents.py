@@ -1,8 +1,8 @@
-"""Incident routes: CRUD. Ownership scoped through the linked Service.
+"""Incident routes: CRUD + timeline updates. Ownership scoped through the Service.
 
 Thin layer: validate via schema, delegate to domain.incident_management (which
 enforces that the incident's service is owned by the current user), return a
-schema. The /updates timeline route remains a stub for a later slice.
+schema.
 """
 import uuid
 
@@ -14,6 +14,7 @@ from app.deps import get_current_user
 from app.domain import incident_management as im
 from app.models.user import User
 from app.schemas.incident import IncidentCreate, IncidentOut, IncidentUpdate
+from app.schemas.incident_update import IncidentUpdateCreate, IncidentUpdateOut
 
 router = APIRouter(prefix="/api/incidents", tags=["incidents"])
 
@@ -69,8 +70,27 @@ def delete_incident(
     return None
 
 
-# --- Stub for a later slice ---
-@router.post("/{incident_id}/updates")
-def add_incident_update(incident_id: str, current_user: User = Depends(get_current_user)):
-    # TODO(later): append a timeline note
-    return {"detail": "not_implemented"}
+# --- Incident updates (timeline) ---
+@router.get("/{incident_id}/updates", response_model=list[IncidentUpdateOut])
+def list_incident_updates(
+    incident_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    incident = im.get_owned_incident_or_404(db, incident_id, current_user.id)
+    return im.list_updates_for_incident(db, incident)
+
+
+@router.post(
+    "/{incident_id}/updates",
+    response_model=IncidentUpdateOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def add_incident_update(
+    incident_id: uuid.UUID,
+    payload: IncidentUpdateCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    incident = im.get_owned_incident_or_404(db, incident_id, current_user.id)
+    return im.add_update(db, incident, payload.model_dump(exclude_unset=True))
