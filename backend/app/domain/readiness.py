@@ -1,25 +1,55 @@
-"""Rollback readiness scoring — a pure function, no DB, no HTTP.
+"""Release readiness scoring — pure functions, no DB, no HTTP.
 
-Score is derivable state and is never stored (see Phase 1 tradeoffs). Five
-boolean checks -> a percentage. is_ready trips at the threshold.
+Score and status are derivable from the five checklist booleans. They are
+computed here and stored on the checklist row (denormalized) so reads are
+cheap and the API can return them directly; the single writer is the checklist
+update path, so they cannot drift.
+
+Score: each of the five items contributes 20 points (0..100).
+Status:
+    0 - 40  -> blocked
+    60 - 80 -> risky
+    100     -> ready
 """
-READY_THRESHOLD = 80
+import enum
 
 CHECK_FIELDS = (
     "tests_passed",
-    "migration_reviewed",
+    "security_review_done",
     "rollback_plan_ready",
-    "monitoring_enabled",
-    "owner_assigned",
+    "monitoring_ready",
+    "stakeholder_approval",
 )
 
 
-def compute_score(checks: dict[str, bool]) -> tuple[int, bool]:
-    """Return (score 0-100, is_ready) from the five checklist booleans.
+class ReadinessStatus(str, enum.Enum):
+    blocked = "blocked"
+    risky = "risky"
+    ready = "ready"
 
-    Unknown/missing keys count as False. Extra keys are ignored.
+
+def compute_score(checks: dict[str, bool]) -> int:
+    """Return an integer percentage (0..100) from the five checklist booleans.
+
+    Missing keys count as False. Extra keys are ignored.
     """
-    total = len(CHECK_FIELDS)
     passed = sum(1 for f in CHECK_FIELDS if checks.get(f))
-    score = round(passed / total * 100)
-    return score, score >= READY_THRESHOLD
+    return passed * 20  # 5 items * 20 = 100
+
+
+def compute_status(score: int) -> ReadinessStatus:
+    """Map a score to a readiness status.
+
+    0-40 -> blocked, 60-80 -> risky, 100 -> ready.
+    """
+    if score >= 100:
+        return ReadinessStatus.ready
+    if score >= 60:
+        return ReadinessStatus.risky
+    return ReadinessStatus.blocked
+
+
+def compute_readiness(checks: dict[str, bool]) -> tuple[int, ReadinessStatus]:
+    """Convenience: return (score, status) together."""
+    score = compute_score(checks)
+    return score, compute_status(score)
