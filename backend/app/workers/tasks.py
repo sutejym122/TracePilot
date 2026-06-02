@@ -31,3 +31,23 @@ def run_health_checks() -> None:
                 logger.exception("Scheduled health check failed for service %s", service.id)
     finally:
         db.close()
+
+
+def generate_metrics_for_all_services() -> None:
+    """Generate one simulated metric per service.
+
+    Opens its own DB session and reuses the same domain function the manual
+    /metrics/simulate route uses. One service's failure never aborts the batch.
+    """
+    from app.domain.metric_management import generate_simulated_metric
+
+    db = SessionLocal()
+    try:
+        services = db.scalars(select(Service)).all()
+        for service in services:
+            try:
+                generate_simulated_metric(db, service.id)
+            except Exception:
+                logger.exception("Scheduled metric generation failed for service %s", service.id)
+    finally:
+        db.close()

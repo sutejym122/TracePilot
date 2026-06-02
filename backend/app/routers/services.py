@@ -1,8 +1,7 @@
-"""Service (microservice entity) routes: CRUD + health checks.
+"""Service (microservice entity) routes: CRUD + health checks + API metrics.
 
-Thin layer: validate via schema, delegate to domain.crud / domain.health_checker
-(which scope every query to the current user via user_id), return a schema. The
-/metrics route remains a stub for a later phase.
+Thin layer: validate via schema, delegate to domain helpers (which scope every
+query to the current user via user_id), return a schema.
 """
 import uuid
 
@@ -14,10 +13,12 @@ from app.database import get_db
 from app.deps import get_current_user
 from app.domain import crud
 from app.domain.health_checker import check_service
+from app.domain import metric_management as mm
 from app.models.health import HealthCheck
 from app.models.service import Service
 from app.models.user import User
 from app.schemas.health import HealthCheckOut
+from app.schemas.metric import ApiMetricCreate, ApiMetricOut
 from app.schemas.service import ServiceCreate, ServiceOut, ServiceUpdate
 
 router = APIRouter(prefix="/api/services", tags=["services"])
@@ -103,8 +104,41 @@ def trigger_health_check(
     return check_service(db, service)
 
 
-# --- Stub for a later phase ---
-@router.get("/{service_id}/metrics")
-def get_service_metrics(service_id: str, current_user: User = Depends(get_current_user)):
-    # TODO(phase7): ApiMetric rows for this service
-    return []
+# --- API metrics ---
+@router.get("/{service_id}/metrics", response_model=list[ApiMetricOut])
+def list_service_metrics(
+    service_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    mm.get_owned_service_or_404(db, service_id, current_user.id)
+    return mm.list_metrics_for_service(db, service_id)
+
+
+@router.post(
+    "/{service_id}/metrics",
+    response_model=ApiMetricOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_service_metric(
+    service_id: uuid.UUID,
+    payload: ApiMetricCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    mm.get_owned_service_or_404(db, service_id, current_user.id)
+    return mm.create_metric(db, service_id, payload.model_dump())
+
+
+@router.post(
+    "/{service_id}/metrics/simulate",
+    response_model=ApiMetricOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def simulate_service_metric(
+    service_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    mm.get_owned_service_or_404(db, service_id, current_user.id)
+    return mm.generate_simulated_metric(db, service_id)
