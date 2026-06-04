@@ -1,0 +1,31 @@
+import { Routes, Route } from "react-router-dom";
+import AppShell from "./components/layout/AppShell";
+import DashboardPage from "./pages/DashboardPage";
+import ServicesPage from "./pages/ServicesPage";
+import ReleasesPage from "./pages/ReleasesPage";
+import IncidentsPage from "./pages/IncidentsPage";
+import SettingsPage from "./pages/SettingsPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import NotFoundPage from "./pages/NotFoundPage";
+
+export default function App() {
+  return (
+    <Routes>
+      {/* Public routes (no app shell). Auth guard added in Phase F2. */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+
+      {/* App routes inside the shell. */}
+      <Route element={<AppShell />}>
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/releases" element={<ReleasesPage />} />
+        <Route path="/incidents" element={<IncidentsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+      </Route>
+
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  );
+}

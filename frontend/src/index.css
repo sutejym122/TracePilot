@@ -1,0 +1,39 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-canvas text-content font-sans antialiased;
+    background-image: radial-gradient(
+      120% 80% at 50% -10%,
+      rgba(45, 212, 191, 0.05),
+      transparent 60%
+    );
+    background-attachment: fixed;
+  }
+  ::selection {
+    background: rgba(45, 212, 191, 0.25);
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #2e3644;
+    border-radius: 4px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
