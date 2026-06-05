@@ -55,7 +55,7 @@ export default function DashboardPage() {
     <div>
       <PageHeader
         title="Dashboard"
-        description="Service health, release readiness, and incident activity at a glance."
+        description="Operational summary across services, releases, and incidents."
       />
 
       {isLoading ? (

@@ -1,14 +1,17 @@
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 
 export default function AppShell() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div className="flex h-full">
-      <Sidebar />
+      <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Header />
-        <main className="scrollbar-thin flex-1 overflow-y-auto px-6 py-6">
+        <Header onMenuClick={() => setMenuOpen(true)} />
+        <main className="scrollbar-thin flex-1 overflow-y-auto px-4 py-6 sm:px-6">
           <Outlet />
         </main>
       </div>

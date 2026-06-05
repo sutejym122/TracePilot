@@ -49,45 +49,84 @@ const items: NavItem[] = [
   },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  open: boolean; // mobile drawer open state
+  onClose: () => void; // close the mobile drawer (e.g. after navigating)
+}
+
+function NavItems({ onNavigate }: { onNavigate?: () => void }) {
   return (
-    <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-surface md:flex">
-      <div className="flex h-14 items-center gap-2.5 border-b border-border px-5">
-        <svg viewBox="0 0 32 32" className="h-7 w-7">
-          <rect width="32" height="32" rx="7" fill="#11141b" />
-          <path
-            d="M5 20 L12 20 L15 11 L18 25 L21 16 L27 16"
-            fill="none"
-            stroke="#2dd4bf"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+    <nav className="flex flex-col gap-1 p-3">
+      {items.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          end={item.to === "/"}
+          onClick={onNavigate}
+          className={({ isActive }) =>
+            `flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
+              isActive
+                ? "bg-surface-hover text-content"
+                : "text-content-muted hover:bg-surface-hover hover:text-content"
+            }`
+          }
+        >
+          {item.icon}
+          {item.label}
+        </NavLink>
+      ))}
+    </nav>
+  );
+}
+
+function Brand() {
+  return (
+    <div className="flex h-14 items-center gap-2.5 border-b border-border px-5">
+      <svg viewBox="0 0 32 32" className="h-7 w-7">
+        <rect width="32" height="32" rx="7" fill="#11141b" />
+        <path
+          d="M5 20 L12 20 L15 11 L18 25 L21 16 L27 16"
+          fill="none"
+          stroke="#2dd4bf"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <span className="font-semibold tracking-tight">TracePilot</span>
+    </div>
+  );
+}
+
+export default function Sidebar({ open, onClose }: SidebarProps) {
+  return (
+    <>
+      {/* Desktop: static sidebar */}
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-surface md:flex">
+        <Brand />
+        <NavItems />
+        <div className="mt-auto p-4 text-xs text-content-faint">
+          <span className="font-mono">v0.1.0 · MVP</span>
+        </div>
+      </aside>
+
+      {/* Mobile: slide-in drawer + backdrop */}
+      {open && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={onClose}
+            aria-hidden
           />
-        </svg>
-        <span className="font-semibold tracking-tight">TracePilot</span>
-      </div>
-      <nav className="flex flex-col gap-1 p-3">
-        {items.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === "/"}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
-                isActive
-                  ? "bg-surface-hover text-content"
-                  : "text-content-muted hover:bg-surface-hover hover:text-content"
-              }`
-            }
-          >
-            {item.icon}
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
-      <div className="mt-auto p-4 text-xs text-content-faint">
-        <span className="font-mono">v0.1.0 · MVP</span>
-      </div>
-    </aside>
+          <aside className="absolute left-0 top-0 flex h-full w-60 flex-col border-r border-border bg-surface">
+            <Brand />
+            <NavItems onNavigate={onClose} />
+            <div className="mt-auto p-4 text-xs text-content-faint">
+              <span className="font-mono">v0.1.0 · MVP</span>
+            </div>
+          </aside>
+        </div>
+      )}
+    </>
   );
 }
