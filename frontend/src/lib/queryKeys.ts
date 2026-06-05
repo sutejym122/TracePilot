@@ -4,5 +4,8 @@ export const qk = {
   service: (id: string) => ["services", id] as const,
   serviceHealth: (id: string) => ["services", id, "health"] as const,
   serviceMetrics: (id: string) => ["services", id, "metrics"] as const,
+  releases: ["releases"] as const,
+  release: (id: string) => ["releases", id] as const,
+  releaseChecklist: (id: string) => ["releases", id, "checklist"] as const,
   dashboard: ["dashboard", "summary"] as const,
 };

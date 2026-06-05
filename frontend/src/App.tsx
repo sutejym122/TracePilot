@@ -5,6 +5,7 @@ import DashboardPage from "./pages/DashboardPage";
 import ServicesPage from "./pages/ServicesPage";
 import ServiceDetailPage from "./pages/ServiceDetailPage";
 import ReleasesPage from "./pages/ReleasesPage";
+import ReleaseDetailPage from "./pages/ReleaseDetailPage";
 import IncidentsPage from "./pages/IncidentsPage";
 import SettingsPage from "./pages/SettingsPage";
 import LoginPage from "./pages/LoginPage";
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/services/:serviceId" element={<ServiceDetailPage />} />
           <Route path="/releases" element={<ReleasesPage />} />
+          <Route path="/releases/:releaseId" element={<ReleaseDetailPage />} />
           <Route path="/incidents" element={<IncidentsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
