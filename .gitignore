@@ -1,6 +1,40 @@
+# OS noise
 .DS_Store
-.DS_Store
+._DS_Store
+._*
+Thumbs.db
 
-# Private career/interview prep notes
+# Environment files (never commit real secrets)
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / frontend build
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+*.local
+
+# Editors / misc
+.idea/
+.vscode/
+*.log
+
+# Private, non-public portfolio prep (kept local, not pushed)
 docs/RESUME_BULLETS.md
 docs/INTERVIEW_ANSWERS.md

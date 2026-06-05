@@ -41,3 +41,11 @@ _Incident timeline — updates drive status; resolving auto-stamps the resolutio
 
 ![Honest MVP scope showing user-scoped tenancy](docs/img/settings.png)
 _Settings — honest MVP scope, with team collaboration noted as future work._
+
+## Deployment & operations
+
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — running locally and deploying publicly (frontend on Vercel/Netlify, backend on Render/Railway/Fly.io, managed Postgres), including required env vars and CORS notes.
+- [docs/FINAL_DEMO_CHECKLIST.md](docs/FINAL_DEMO_CHECKLIST.md) — step-by-step checklist before showing the project to a recruiter or interviewer.
+- [docs/PRODUCTION_CHECKLIST.md](docs/PRODUCTION_CHECKLIST.md) — an honest list of what production-readiness would require (this is a portfolio MVP, not production software).
+
+> The frontend requires `VITE_API_BASE_URL` to point at the backend (e.g. `http://localhost:8000` locally, or your deployed backend URL). When deploying, set the backend's `CORS_ORIGINS` to the deployed frontend origin (comma-separated, no trailing slash).
