@@ -7,6 +7,7 @@ import ServiceDetailPage from "./pages/ServiceDetailPage";
 import ReleasesPage from "./pages/ReleasesPage";
 import ReleaseDetailPage from "./pages/ReleaseDetailPage";
 import IncidentsPage from "./pages/IncidentsPage";
+import IncidentDetailPage from "./pages/IncidentDetailPage";
 import SettingsPage from "./pages/SettingsPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -28,6 +29,10 @@ export default function App() {
           <Route path="/releases" element={<ReleasesPage />} />
           <Route path="/releases/:releaseId" element={<ReleaseDetailPage />} />
           <Route path="/incidents" element={<IncidentsPage />} />
+          <Route
+            path="/incidents/:incidentId"
+            element={<IncidentDetailPage />}
+          />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>

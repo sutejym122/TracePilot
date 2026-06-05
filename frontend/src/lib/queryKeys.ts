@@ -7,5 +7,8 @@ export const qk = {
   releases: ["releases"] as const,
   release: (id: string) => ["releases", id] as const,
   releaseChecklist: (id: string) => ["releases", id, "checklist"] as const,
+  incidents: ["incidents"] as const,
+  incident: (id: string) => ["incidents", id] as const,
+  incidentUpdates: (id: string) => ["incidents", id, "updates"] as const,
   dashboard: ["dashboard", "summary"] as const,
 };
