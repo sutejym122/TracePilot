@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "../components/layout/PageHeader";
 import Card from "../components/ui/Card";
@@ -15,6 +15,7 @@ import StatusBadge from "../components/domain/StatusBadge";
 import SeverityBadge from "../components/domain/SeverityBadge";
 import { useIncidents, useCreateIncident } from "../hooks/useIncidents";
 import { useServices } from "../hooks/useServices";
+import { useReleases } from "../hooks/useReleases";
 import { formatDateTime } from "../lib/format";
 import { ApiError } from "../lib/apiClient";
 import type { IncidentSeverity, IncidentStatus } from "../types/incident";
@@ -25,10 +26,14 @@ function toIsoOrNull(local: string): string | null {
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
+// Sentinel for "no linked release" in the picker.
+const NO_RELEASE = "";
+
 export default function IncidentsPage() {
   const navigate = useNavigate();
   const incidents = useIncidents();
   const services = useServices();
+  const releases = useReleases();
   const createIncident = useCreateIncident();
 
   const serviceName = useMemo(() => {
@@ -39,6 +44,7 @@ export default function IncidentsPage() {
 
   const [open, setOpen] = useState(false);
   const [serviceId, setServiceId] = useState("");
+  const [releaseId, setReleaseId] = useState<string>(NO_RELEASE);
   const [title, setTitle] = useState("");
   const [severity, setSeverity] = useState<IncidentSeverity>("low");
   const [status, setStatus] = useState<IncidentStatus>("open");
@@ -50,8 +56,28 @@ export default function IncidentsPage() {
 
   const hasServices = (services.data?.length ?? 0) > 0;
 
+  // Releases on the currently selected service, newest first.
+  const serviceReleases = useMemo(() => {
+    if (!serviceId) return [];
+    return (releases.data ?? [])
+      .filter((r) => r.service_id === serviceId)
+      .slice()
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
+  }, [releases.data, serviceId]);
+
+  // When the selected service changes, default the picker to its most recent
+  // release (the "likely release"), or clear if the service has none.
+  useEffect(() => {
+    setReleaseId(serviceReleases[0]?.id ?? NO_RELEASE);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serviceId, releases.data]);
+
   const resetForm = () => {
     setServiceId("");
+    setReleaseId(NO_RELEASE);
     setTitle("");
     setSeverity("low");
     setStatus("open");
@@ -82,6 +108,8 @@ export default function IncidentsPage() {
         root_cause: rootCause.trim() || null,
         started_at: toIsoOrNull(startedAt),
         resolved_at: toIsoOrNull(resolvedAt),
+        // Only include a link when one is chosen.
+        release_id: releaseId || null,
       });
       setOpen(false);
       resetForm();
@@ -189,6 +217,22 @@ export default function IncidentsPage() {
                 </option>
               ))}
             </Select>
+
+            {/* Optional, user-confirmed link to the likely release on this service. */}
+            <Select
+              id="release_id"
+              label="Likely release"
+              value={releaseId}
+              onChange={(e) => setReleaseId(e.target.value)}
+            >
+              <option value={NO_RELEASE}>No linked release</option>
+              {serviceReleases.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.version} ({r.status})
+                </option>
+              ))}
+            </Select>
+
             <Input
               id="title"
               label="Title *"

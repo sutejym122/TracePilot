@@ -19,6 +19,7 @@ import {
   useDeleteIncident,
 } from "../hooks/useIncident";
 import { useServices } from "../hooks/useServices";
+import { useReleases } from "../hooks/useReleases";
 import { formatDateTime } from "../lib/format";
 import { ApiError } from "../lib/apiClient";
 import type { IncidentStatus } from "../types/incident";
@@ -48,6 +49,7 @@ export default function IncidentDetailPage() {
   const incident = useIncident(incidentId);
   const updates = useIncidentUpdates(incidentId);
   const services = useServices();
+  const releases = useReleases();
 
   const addUpdate = useAddIncidentUpdate(incidentId);
   const updateIncident = useUpdateIncident(incidentId);
@@ -69,6 +71,12 @@ export default function IncidentDetailPage() {
     if (!i) return null;
     return services.data?.find((s) => s.id === i.service_id)?.name ?? null;
   }, [incident.data, services.data]);
+
+  const linkedRelease = useMemo(() => {
+    const i = incident.data;
+    if (!i || !i.release_id) return null;
+    return releases.data?.find((r) => r.id === i.release_id) ?? null;
+  }, [incident.data, releases.data]);
 
   if (incident.isLoading) return <Spinner label="Loading incident…" />;
   if (incident.isError) {
@@ -176,6 +184,33 @@ export default function IncidentDetailPage() {
                 <span className="font-mono text-xs">
                   {i.service_id.slice(0, 8)}…
                 </span>
+              )}
+            </InfoRow>
+            <InfoRow label="Linked release">
+              {i.release_id ? (
+                linkedRelease ? (
+                  <Link
+                    to={`/releases/${linkedRelease.id}`}
+                    className="inline-flex items-center gap-2 text-signal hover:underline"
+                  >
+                    <span className="font-mono">{linkedRelease.version}</span>
+                    <StatusBadge value={linkedRelease.status} />
+                    <span className="font-mono text-xs text-content-muted">
+                      {linkedRelease.environment}
+                    </span>
+                  </Link>
+                ) : (
+                  // Linked, but the release isn't in the loaded list (e.g. on
+                  // another page of data) — still link by id.
+                  <Link
+                    to={`/releases/${i.release_id}`}
+                    className="font-mono text-xs text-signal hover:underline"
+                  >
+                    {i.release_id.slice(0, 8)}…
+                  </Link>
+                )
+              ) : (
+                "—"
               )}
             </InfoRow>
             <InfoRow label="Started">{formatDateTime(i.started_at)}</InfoRow>

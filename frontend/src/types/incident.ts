@@ -8,6 +8,7 @@ export type IncidentStatus =
 export interface Incident {
   id: string;
   service_id: string;
+  release_id: string | null;
   title: string;
   severity: IncidentSeverity;
   status: IncidentStatus;
@@ -28,6 +29,8 @@ export interface IncidentCreate {
   root_cause?: string | null;
   started_at?: string | null;
   resolved_at?: string | null;
+  // Optional, user-confirmed link to the likely release (same service).
+  release_id?: string | null;
 }
 
 // service_id is immutable from the frontend; all other fields optional.

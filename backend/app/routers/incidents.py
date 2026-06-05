@@ -1,8 +1,8 @@
-"""Incident routes: CRUD + timeline updates. Ownership scoped through the Service.
+"""Incident routes: CRUD. Ownership scoped through the linked Service.
 
 Thin layer: validate via schema, delegate to domain.incident_management (which
 enforces that the incident's service is owned by the current user), return a
-schema.
+schema. The /updates timeline route remains a stub for a later slice.
 """
 import uuid
 
@@ -15,8 +15,20 @@ from app.domain import incident_management as im
 from app.models.user import User
 from app.schemas.incident import IncidentCreate, IncidentOut, IncidentUpdate
 from app.schemas.incident_update import IncidentUpdateCreate, IncidentUpdateOut
+from app.schemas.release import ReleaseOut
 
 router = APIRouter(prefix="/api/incidents", tags=["incidents"])
+
+
+@router.get("/suggested-releases/{service_id}", response_model=list[ReleaseOut])
+def suggested_releases(
+    service_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Releases on the given service (newest first) — candidates for the
+    'likely release' link on a new incident. Empty if the service isn't owned."""
+    return im.suggest_releases_for_service(db, service_id, current_user.id)
 
 
 @router.get("", response_model=list[IncidentOut])

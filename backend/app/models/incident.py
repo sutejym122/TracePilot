@@ -44,6 +44,12 @@ class Incident(Base, TimestampMixin):
     service_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("services.id", ondelete="CASCADE"), index=True, nullable=False
     )
+    # Optional, user-confirmed link to the release suspected of causing the
+    # incident. ON DELETE SET NULL: deleting a release nulls this link rather
+    # than deleting the incident.
+    release_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("releases.id", ondelete="SET NULL"), index=True, nullable=True
+    )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     severity: Mapped[IncidentSeverity] = mapped_column(
         SAEnum(IncidentSeverity, name="incident_severity"), nullable=False

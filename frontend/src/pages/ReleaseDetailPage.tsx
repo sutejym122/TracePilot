@@ -7,8 +7,11 @@ import ErrorState from "../components/ui/ErrorState";
 import Modal from "../components/ui/Modal";
 import Select from "../components/ui/Select";
 import StatusBadge from "../components/domain/StatusBadge";
+import SeverityBadge from "../components/domain/SeverityBadge";
 import ReadinessRing from "../components/domain/ReadinessRing";
 import ChecklistEditor from "../components/domain/ChecklistEditor";
+import Table, { Td, Th, Tr } from "../components/ui/Table";
+import EmptyState from "../components/ui/EmptyState";
 import {
   useRelease,
   useReleaseChecklist,
@@ -17,6 +20,7 @@ import {
   useDeleteRelease,
 } from "../hooks/useRelease";
 import { useServices } from "../hooks/useServices";
+import { useIncidents } from "../hooks/useIncidents";
 import { formatDateTime } from "../lib/format";
 import { ApiError } from "../lib/apiClient";
 import type { ChecklistUpdate, ReleaseStatus } from "../types/release";
@@ -45,6 +49,7 @@ export default function ReleaseDetailPage() {
   const release = useRelease(releaseId);
   const checklist = useReleaseChecklist(releaseId);
   const services = useServices();
+  const incidents = useIncidents();
 
   const updateChecklist = useUpdateChecklist(releaseId);
   const updateRelease = useUpdateRelease(releaseId);
@@ -59,6 +64,11 @@ export default function ReleaseDetailPage() {
     if (!r) return null;
     return services.data?.find((s) => s.id === r.service_id)?.name ?? null;
   }, [release.data, services.data]);
+
+  // Incidents explicitly linked to this release.
+  const relatedIncidents = useMemo(() => {
+    return (incidents.data ?? []).filter((i) => i.release_id === releaseId);
+  }, [incidents.data, releaseId]);
 
   if (release.isLoading) return <Spinner label="Loading release…" />;
   if (release.isError) {
@@ -206,6 +216,49 @@ export default function ReleaseDetailPage() {
                     ? updateChecklist.error.message
                     : "unknown error"}
                 </p>
+              )}
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <h3 className="text-sm font-semibold tracking-tight">
+                Related incidents
+              </h3>
+            </CardHeader>
+            <CardBody>
+              {incidents.isLoading ? (
+                <Spinner label="Loading incidents…" />
+              ) : relatedIncidents.length === 0 ? (
+                <EmptyState
+                  title="No linked incidents"
+                  description="Incidents linked to this release will appear here."
+                />
+              ) : (
+                <Table
+                  head={
+                    <>
+                      <Th>Title</Th>
+                      <Th>Severity</Th>
+                      <Th>Status</Th>
+                    </>
+                  }
+                >
+                  {relatedIncidents.map((inc) => (
+                    <Tr
+                      key={inc.id}
+                      onClick={() => navigate(`/incidents/${inc.id}`)}
+                    >
+                      <Td className="font-medium text-content">{inc.title}</Td>
+                      <Td>
+                        <SeverityBadge severity={inc.severity} />
+                      </Td>
+                      <Td>
+                        <StatusBadge value={inc.status} />
+                      </Td>
+                    </Tr>
+                  ))}
+                </Table>
               )}
             </CardBody>
           </Card>

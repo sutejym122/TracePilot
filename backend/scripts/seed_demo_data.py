@@ -137,6 +137,8 @@ def seed(db) -> None:
     # --- Incident + timeline ------------------------------------------------
     incident = im.create_incident(db, {
         "service_id": payment.id,
+        # Explicitly link to release 1.0.0 — the user-confirmed "likely release".
+        "release_id": release.id,
         "title": "Elevated payment refund errors after release 1.0.0",
         "severity": "high",
         "status": "open",
@@ -170,7 +172,7 @@ def seed(db) -> None:
     print(f"  user:     {DEMO_EMAIL} / {DEMO_PASSWORD}")
     print(f"  services: payment-service, auth-service, notifications-service")
     print(f"  release:  1.0.0 (ready), 2.3.1 (testing)")
-    print(f"  incident: '{incident.title}' with 3 timeline updates")
+    print(f"  incident: '{incident.title}' with 3 timeline updates (linked to release 1.0.0)")
 
 
 def main() -> None:

@@ -6,6 +6,7 @@ import type {
   IncidentUpdateCreate,
   IncidentUpdatePayload,
 } from "../types/incident";
+import type { Release } from "../types/release";
 
 export const incidentsApi = {
   list: () => apiGet<Incident[]>("/api/incidents"),
@@ -19,4 +20,7 @@ export const incidentsApi = {
     apiGet<IncidentUpdate[]>(`/api/incidents/${id}/updates`),
   addUpdate: (id: string, payload: IncidentUpdateCreate) =>
     apiPost<IncidentUpdate>(`/api/incidents/${id}/updates`, payload),
+  // Candidate releases (newest first) on a service, for the "likely release" link.
+  suggestedReleases: (serviceId: string) =>
+    apiGet<Release[]>(`/api/incidents/suggested-releases/${serviceId}`),
 };

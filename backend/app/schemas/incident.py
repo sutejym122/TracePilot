@@ -24,6 +24,9 @@ class IncidentCreate(BaseModel):
     root_cause: str | None = None
     started_at: datetime | None = None
     resolved_at: datetime | None = None
+    # Optional user-confirmed link to the likely release. Must belong to the
+    # same service as the incident (validated in the domain layer).
+    release_id: uuid.UUID | None = None
 
 
 class IncidentUpdate(BaseModel):
@@ -34,6 +37,9 @@ class IncidentUpdate(BaseModel):
     root_cause: str | None = None
     started_at: datetime | None = None
     resolved_at: datetime | None = None
+    # Send a release id to link, or explicit null to clear the link. The domain
+    # layer distinguishes omitted (unchanged) from explicit null (clear).
+    release_id: uuid.UUID | None = None
 
 
 class IncidentOut(BaseModel):
@@ -41,6 +47,7 @@ class IncidentOut(BaseModel):
 
     id: uuid.UUID
     service_id: uuid.UUID
+    release_id: uuid.UUID | None
     title: str
     severity: IncidentSeverity
     status: IncidentStatus

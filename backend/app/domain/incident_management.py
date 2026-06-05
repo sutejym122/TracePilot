@@ -19,8 +19,9 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.errors import NotFoundError
+from app.errors import NotFoundError, ValidationError
 from app.models.incident import Incident, IncidentStatus
+from app.models.release import Release
 from app.models.service import Service
 
 
@@ -32,6 +33,40 @@ def get_owned_service_or_404(
     if service is None or service.user_id != user_id:
         raise NotFoundError("Service not found")
     return service
+
+
+def validate_release_for_service(
+    db: Session, release_id: uuid.UUID, service_id: uuid.UUID
+) -> None:
+    """Ensure a release exists and belongs to the same service as the incident.
+
+    Ownership is already guaranteed by the caller having validated the service
+    against the current user, and a release belongs to exactly one service — so
+    a release on this service is necessarily owned by the same user. A release
+    that doesn't exist or belongs to a different service is rejected (422).
+    """
+    release = db.get(Release, release_id)
+    if release is None or release.service_id != service_id:
+        raise ValidationError(
+            "release_id must reference a release on the same service"
+        )
+
+
+def suggest_releases_for_service(
+    db: Session, service_id: uuid.UUID, user_id: uuid.UUID, limit: int = 10
+) -> list[Release]:
+    """Releases on the given (owned) service, newest first — candidates for the
+    'likely release' link. Returns [] if the service isn't owned by the user."""
+    service = db.get(Service, service_id)
+    if service is None or service.user_id != user_id:
+        return []
+    stmt = (
+        select(Release)
+        .where(Release.service_id == service_id)
+        .order_by(Release.created_at.desc(), Release.id.desc())
+        .limit(limit)
+    )
+    return list(db.scalars(stmt).all())
 
 
 def list_incidents_for_user(db: Session, user_id: uuid.UUID) -> list[Incident]:
@@ -61,6 +96,10 @@ def get_owned_incident_or_404(
 
 
 def create_incident(db: Session, data: dict) -> Incident:
+    # If a release link is supplied, it must be a release on the same service.
+    release_id = data.get("release_id")
+    if release_id is not None:
+        validate_release_for_service(db, release_id, data["service_id"])
     # On create: if status is resolved and no resolved_at given, stamp it now.
     if (
         data.get("status") == IncidentStatus.resolved
@@ -82,6 +121,11 @@ def update_incident(db: Session, incident: Incident, changes: dict) -> Incident:
     """
     resolved_at_explicit = "resolved_at" in changes
     new_status = changes.get("status", incident.status)
+
+    # If the client supplies a non-null release_id, validate it against the
+    # incident's service. An explicit null clears the link (no validation).
+    if changes.get("release_id") is not None:
+        validate_release_for_service(db, changes["release_id"], incident.service_id)
 
     for key, value in changes.items():
         setattr(incident, key, value)
