@@ -3,6 +3,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AppShell from "./components/layout/AppShell";
 import DashboardPage from "./pages/DashboardPage";
 import ServicesPage from "./pages/ServicesPage";
+import ServiceDetailPage from "./pages/ServiceDetailPage";
 import ReleasesPage from "./pages/ReleasesPage";
 import IncidentsPage from "./pages/IncidentsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -22,6 +23,7 @@ export default function App() {
         <Route element={<AppShell />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/services" element={<ServicesPage />} />
+          <Route path="/services/:serviceId" element={<ServiceDetailPage />} />
           <Route path="/releases" element={<ReleasesPage />} />
           <Route path="/incidents" element={<IncidentsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
