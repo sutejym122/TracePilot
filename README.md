@@ -13,3 +13,31 @@ TracePilot connects the operational signals a small team already has — service
 ## Overview
 
 TracePilot is a full-stack portfolio MVP: a FastAPI + PostgreSQL backend and a React + TypeScript frontend, wired end to end. It models the operational loop:
+
+## Screenshots
+
+Screenshots live in `docs/img/`. To regenerate them, seed the demo data (`docker compose exec api python scripts/seed_demo_data.py`), log in as `demo@tracepilot.dev` / `password123`, and follow [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md). If the images aren't present yet, add them to `docs/img/` using the filenames below.
+
+![Operational summary across services, releases, health, metrics, and incidents](docs/img/dashboard.png)
+_Dashboard — operational summary across the whole loop._
+
+![The service registry, the root entity for releases, health, metrics, and incidents](docs/img/services.png)
+_Services — the registry everything else hangs off of._
+
+![Per-service health and latency/error context with a failing refund endpoint](docs/img/service-detail-metrics.png)
+_Service detail — health checks plus the healthy charge vs. failing refund endpoints._
+
+![Release tracking across services with lifecycle status](docs/img/releases.png)
+_Releases — version and lifecycle tracking._
+
+![Rollback readiness as a scored gate from blocked to ready](docs/img/release-readiness.png)
+_Release readiness — a five-item checklist scored 0–100._
+
+![Incident tracking with severity and status](docs/img/incidents.png)
+_Incidents — severity and status, scoped to the affected service._
+
+![Incident response timeline ending in a resolved, time-stamped state](docs/img/incident-timeline.png)
+_Incident timeline — updates drive status; resolving auto-stamps the resolution time._
+
+![Honest MVP scope showing user-scoped tenancy](docs/img/settings.png)
+_Settings — honest MVP scope, with team collaboration noted as future work._
