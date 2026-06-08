@@ -8,7 +8,7 @@ Its wedge is **correlation, not collection.** TracePilot doesn't try to out-inst
 
 ## Live demo
 
-**Try it:** https://trace-pilot-two.vercel.app  
+**Try it:** https://trace-pilot-two.vercel.app
 **API docs:** https://tracepilot-api.onrender.com/docs
 
 Demo credentials:
@@ -19,6 +19,22 @@ Demo credentials:
 The demo uses a shared public account with seeded data. If the data looks different, it may have been changed by another visitor.
 
 > The backend runs on a free hosting tier that sleeps when idle, so the first request after a quiet period may take a few seconds to wake up. Subsequent requests are fast.
+
+---
+
+## Demo walkthrough
+
+> A release goes out, refund errors spike, and TracePilot links the incident back to the release that likely caused it.
+
+**Watch the demo:** [TracePilot walkthrough](docs/demo/tracepilot-demo.mov)
+
+The walkthrough shows the core loop:
+
+```text
+release → health → latency/errors → incident → linked release → rollback readiness
+```
+
+In the demo, a `payment-service` release goes live, the refund endpoint starts failing, an incident is opened, and TracePilot links that incident back to release `1.0.0`.
 
 ---
 
