@@ -6,6 +6,9 @@ import Input from "../components/ui/Input";
 import { useAuth } from "../hooks/useAuth";
 import { ApiError } from "../lib/apiClient";
 
+const DEMO_EMAIL = "demo@tracepilot.dev";
+const DEMO_PASSWORD = "password123";
+
 export default function LoginPage() {
   const { isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
@@ -16,6 +19,11 @@ export default function LoginPage() {
 
   // Already signed in? Don't show the login form.
   if (isAuthenticated) return <Navigate to="/" replace />;
+
+  const fillDemoCredentials = () => {
+    setEmail(DEMO_EMAIL);
+    setPassword(DEMO_PASSWORD);
+  };
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -61,6 +69,28 @@ export default function LoginPage() {
           <p className="mt-1 text-sm text-content-muted">
             Welcome back. Enter your credentials to continue.
           </p>
+
+          {/* Demo access banner */}
+          <div className="mt-4 rounded-md border border-signal/30 bg-signal/10 px-3 py-2.5 text-xs">
+            <p className="font-medium text-signal">Just here to look around?</p>
+            <p className="mt-1 text-content-muted">
+              Sign in with{" "}
+              <span className="font-mono text-content">{DEMO_EMAIL}</span> /{" "}
+              <span className="font-mono text-content">{DEMO_PASSWORD}</span>.
+            </p>
+            <button
+              type="button"
+              onClick={fillDemoCredentials}
+              className="mt-1.5 font-medium text-signal underline underline-offset-2 hover:opacity-80"
+            >
+              Autofill demo credentials
+            </button>
+            <p className="mt-2 text-content-muted">
+              ⚠️ It's hosted on Vercel's free tier with no custom domain, so the
+              first request after a while might take a nap before waking up.
+              Give it 10–15 seconds — it's loading, not broken.
+            </p>
+          </div>
 
           <form onSubmit={onSubmit} className="mt-5 flex flex-col gap-4">
             <Input
